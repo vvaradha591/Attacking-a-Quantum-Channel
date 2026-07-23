@@ -1,0 +1,5 @@
+import numpy as np
+import random as random
+!pip install cirq --quiet
+import cirq as cirq
+import matplotlib.pyplot as plt
