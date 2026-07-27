@@ -1,4 +1,4 @@
 # Attacking-a-Quantum-Channel
-The requirements.txt file should list all Python libraries that your notebooks depend on, and they will be installed using:
+The requirements.txt file lists all Python libraries that the notebook depend on, you can install it by typing the command:
 
 pip install -r requirements.txt
