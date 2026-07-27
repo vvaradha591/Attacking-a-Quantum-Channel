@@ -1,53 +1,107 @@
 import random
 import cirq
 
-def run_bb84(num_bits=20):
-    # 1. Alice generates random bits and bases ('Z' or 'X')
-    alice_bits = [random.randint(0, 1) for _ in range(num_bits)]
-    alice_bases = [random.choice(['Z', 'X']) for _ in range(num_bits)]
-    
-    # 2. Bob generates random measurement bases
-    bob_bases = [random.choice(['Z', 'X']) for _ in range(num_bits)]
-    
-    bob_results = []
-    simulator = cirq.Simulator()
-    
-    for i in range(num_bits):
-        qubit = cirq.NamedQubit(f'q{i}')
-        circuit = cirq.Circuit()
-        
-        # Alice encodes her bit into the qubit state
-        if alice_bits[i] == 1:
-            circuit.append(cirq.X(qubit))
-        if alice_bases[i] == 'X':
-            circuit.append(cirq.H(qubit))
-            
-        # Bob measures in his chosen basis
-        if bob_bases[i] == 'X':
-            circuit.append(cirq.H(qubit))
-        circuit.append(cirq.measure(qubit, key='result'))
-        
-        # Simulate circuit execution
-        result = simulator.run(circuit)
-        bob_results.append(result.measurements['result'][0][0])
-        
-    # 3. Sifting the key (keep bits where bases match)
-    sifted_key_alice = []
-    sifted_key_bob = []
-    for i in range(num_bits):
-        if alice_bases[i] == bob_bases[i]:
-            sifted_key_alice.append(alice_bits[i])
-            sifted_key_bob.append(bob_results[i])
-            
-    print(f"Alice's original bases: {alice_bases}")
-    print(f"Bob's original bases:   {bob_bases}")
-    print(f"Sifted key (Alice):     {sifted_key_alice}")
-    print(f"Sifted key (Bob):       {sifted_key_bob}")
-    
-    # Calculate error rate (QBER)
-    matches = sum(a == b for a, b in zip(sifted_key_alice, sifted_key_bob))
-    qber = (len(sifted_key_alice) - matches) / len(sifted_key_alice) if sifted_key_alice else 0
-    print(f"Quantum Bit Error Rate (QBER): {qber * 100:.2f}%")
+class BB84Protocol:
+    def __init__(self, num_bits=20):
+        self.num_bits = num_bits
+        self.simulator = cirq.Simulator()
 
-if __name__ == '__main__':
-    run_bb84()
+        self.alice_bits = []
+        self.alice_bases = []
+        self.bob_bases = []
+        self.bob_results = []
+
+        self.sifted_key_alice = []
+        self.sifted_key_bob = []
+
+    def generate_alice_data(self):
+        """Generate Alice's random bits and bases."""
+        self.alice_bits = [random.randint(0, 1) for _ in range(self.num_bits)]
+        self.alice_bases = [
+            random.choice(["Z", "X"]) for _ in range(self.num_bits)
+        ]
+
+    def generate_bob_bases(self):
+        """Generate Bob's random measurement bases."""
+        self.bob_bases = [
+            random.choice(["Z", "X"]) for _ in range(self.num_bits)
+        ]
+
+    def build_circuit(self, index):
+        """Create the BB84 circuit for one qubit."""
+        qubit = cirq.NamedQubit(f"q{index}")
+        circuit = cirq.Circuit()
+
+        # Alice prepares the qubit
+        if self.alice_bits[index] == 1:
+            circuit.append(cirq.X(qubit))
+
+        if self.alice_bases[index] == "X":
+            circuit.append(cirq.H(qubit))
+
+        # Bob measures
+        if self.bob_bases[index] == "X":
+            circuit.append(cirq.H(qubit))
+
+        circuit.append(cirq.measure(qubit, key="result"))
+
+        return circuit
+
+    def transmit_qubits(self):
+        """Simulate Bob measuring every transmitted qubit."""
+        self.bob_results = []
+
+        for i in range(self.num_bits):
+            circuit = self.build_circuit(i)
+            result = self.simulator.run(circuit)
+            measurement = result.measurements["result"][0][0]
+            self.bob_results.append(measurement)
+
+    def sift_key(self):
+        """Keep only bits where Alice and Bob used the same basis."""
+        self.sifted_key_alice = []
+        self.sifted_key_bob = []
+
+        for i in range(self.num_bits):
+            if self.alice_bases[i] == self.bob_bases[i]:
+                self.sifted_key_alice.append(self.alice_bits[i])
+                self.sifted_key_bob.append(self.bob_results[i])
+
+    def calculate_qber(self):
+        """Compute the Quantum Bit Error Rate."""
+        if len(self.sifted_key_alice) == 0:
+            return 0
+
+        matches = sum(
+            a == b
+            for a, b in zip(self.sifted_key_alice, self.sifted_key_bob)
+        )
+
+        return (len(self.sifted_key_alice) - matches) / len(self.sifted_key_alice)
+
+    def display_results(self):
+        """Print protocol results."""
+        print(f"Alice's original bases: {self.alice_bases}")
+        print(f"Bob's original bases:   {self.bob_bases}")
+        print(f"Sifted key (Alice):     {self.sifted_key_alice}")
+        print(f"Sifted key (Bob):       {self.sifted_key_bob}")
+
+        qber = self.calculate_qber()
+        print(f"Quantum Bit Error Rate (QBER): {qber * 100:.2f}%")
+
+    def run(self):
+        """Execute the BB84 protocol."""
+        self.generate_alice_data()
+        self.generate_bob_bases()
+        self.transmit_qubits()
+        self.sift_key()
+        self.display_results()
+
+
+def main():
+    protocol = BB84Protocol(num_bits=20)
+    protocol.run()
+
+
+if __name__ == "__main__":
+    main()
