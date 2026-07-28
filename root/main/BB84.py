@@ -15,12 +15,12 @@ class BB84Protocol:
         self.sifted_key_bob = []
 
     def generate_alice_data(self):
-        #Generate Alice's random bits and bases.
+        #Generates Alice's random bits and bases.
         self.alice_bits = [random.randint(0, 1) for _ in range(self.num_bits)]
         self.alice_bases = [random.choice(["Z", "X"]) for _ in range(self.num_bits)]
 
     def generate_bob_bases(self):
-        #Generate Bob's random measurement bases.
+        #Generates Bob's random measurement bases.
         self.bob_bases = [random.choice(["Z", "X"]) for _ in range(self.num_bits)]
 
     def build_circuit(self, index):
@@ -28,14 +28,14 @@ class BB84Protocol:
         qubit = cirq.NamedQubit(f"q{index}")
         circuit = cirq.Circuit()
 
-        # Alice prepares the qubit
+        #Alice prepares the qubit to be sent to Bob
         if self.alice_bits[index] == 1:
             circuit.append(cirq.X(qubit))
 
         if self.alice_bases[index] == "X":
             circuit.append(cirq.H(qubit))
 
-        # Bob measures
+        # Bob measures the qubit in the appropiate way
         if self.bob_bases[index] == "X":
             circuit.append(cirq.H(qubit))
 
@@ -64,7 +64,7 @@ class BB84Protocol:
                 self.sifted_key_bob.append(self.bob_results[i])
 
     def calculate_qber(self):
-        #Compute the Quantum Bit Error Rate.
+        #Quantum Bit Error Rate.
         if len(self.sifted_key_alice) == 0:
             return 0
 
