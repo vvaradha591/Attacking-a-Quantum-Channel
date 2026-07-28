@@ -1,8 +1,6 @@
 import random
 import math
 
-# Simple BB84 simulation with a tilted-basis Eve attack
-
 bases = ['Z', 'X']
 
 
