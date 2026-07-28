@@ -1,12 +1,9 @@
 import random
 import math
-
 bases = ['Z', 'X']
-
 
 def encode(bit, basis):
     return (bit, basis)
-
 
 def measure(qubit, basis):
     bit, prep_basis = qubit
@@ -74,7 +71,7 @@ def run_bb84(num_bits, theta=None):
 
     qber = errors / len(same_basis)
 
-    # Eve's guessing accuracy
+    # Eve's guessing accuracy which is important. 
     if theta is None:
         eve_accuracy = 0.0
     else:
@@ -103,7 +100,6 @@ def main():
     print(f"Sifted key length = {key_len_with_eve}")
     print(f"QBER = {error_with_eve:.3f}")
     print(f"Eve Accuracy = {eve_accuracy:.3f}")
-
 
 if __name__ == "__main__":
     main()
